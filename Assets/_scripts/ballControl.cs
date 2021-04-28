@@ -13,8 +13,6 @@ public class ballControl : MonoBehaviour
 
     void Update()
     {
-        if(player != null){
-            
-        }
+
     }
 }

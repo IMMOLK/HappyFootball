@@ -198,7 +198,6 @@ GameObject:
   - component: {fileID: 5852813889480715145}
   - component: {fileID: 5852813889480715190}
   - component: {fileID: 5852813889480715191}
-  - component: {fileID: 5852813889480715188}
   m_Layer: 0
   m_Name: BluePlayer
   m_TagString: Blue
@@ -286,37 +285,18 @@ MonoBehaviour:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 5852813889480715189}
-  m_Enabled: 0
+  m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 41b89bd2efaee1e479455d3fcba93bb4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  speed: 0.025
-  RSpeed: {x: 0, y: 0, z: 0}
-  playerTs: {fileID: 5852813890208506392}
+  speed: 3
   colliderRadius: 0.6
-  force: 1.5
-  isRun: 0
-  shootPower: 15
-  shootRadius: 3
-  shootUp: 0.1
-  passForce: 30
-  team: 0
-  findTeammateSphereRaidus: 10
---- !u!114 &5852813889480715188
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5852813889480715189}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 35e4c7f1ab235454a89e118eb2b4d606, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  speed: {x: 0, y: 0, z: 0}
-  direction: {x: 0, y: 0, z: 0}
+  force: 1
+  shootPower: 7
+  passForce: 5
+  playerState: 20
+  team: 1
 --- !u!1 &5852813889506897733
 GameObject:
   m_ObjectHideFlags: 0

@@ -8,6 +8,10 @@ public class SceneStart : MonoBehaviour
     public void onStart(int sceneNumber){
         SceneManager.LoadScene(sceneNumber);
     }
+
+    public void setPersonNumber(int pn){
+        PlayerPrefs.SetInt("PerNum",pn);
+    }
     // Start is called before the first frame update
     void Start()
     {

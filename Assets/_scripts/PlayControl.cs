@@ -15,6 +15,13 @@ public class PlayControl : MonoBehaviour
    }
 
     public void Play(){
+
+        if(Input.GetKey(control[4])){
+            AnimaObj.SetBool("run",true);
+            utils.run();
+            return;
+        }
+
         if (Input.GetKey(control[0]))
         {
             utils.walk(Vector3.right);
@@ -36,18 +43,13 @@ public class PlayControl : MonoBehaviour
             AnimaObj.SetBool("forward",false);
         }
         
-
-        if(Input.GetKey(control[4])){
-            AnimaObj.SetBool("run",true);
-            utils.run();
-        }
         if(Input.GetKeyUp(control[4])){
             AnimaObj.SetBool("run",false);
         }
 
         if (Input.GetKey(control[5]))
         {
-            utils.Pass();
+            utils.Pass(true);
         }
 
         if(Input.GetKey(control[6])){

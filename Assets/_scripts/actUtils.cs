@@ -14,18 +14,20 @@ public class actUtils : MonoBehaviour
     private float shootPower;
     private float passForce;
     private Team team;
+    private float goalDir = 17.0f;
     public enum Team{
-        Blue = 0,
-        Red = 1
+        None = 0,
+        Blue = 1,
+        Red = 2
     }
 
     void Start() {
-
+        
     }
     public actUtils(){}
 
     public actUtils(Transform bal){ballTran = bal;}
-    private KeyCode[] BlueControl = {KeyCode.D,KeyCode.A,KeyCode.W,KeyCode.S,KeyCode.LeftControl,KeyCode.R,KeyCode.LeftShift,KeyCode.Space};
+    private KeyCode[] BlueControl = {KeyCode.D,KeyCode.A,KeyCode.W,KeyCode.S,KeyCode.LeftControl,KeyCode.J,KeyCode.K,KeyCode.Space};
     private KeyCode[] RedControl = {KeyCode.RightArrow,KeyCode.LeftArrow,KeyCode.UpArrow,KeyCode.DownArrow,KeyCode.Keypad0,KeyCode.Keypad1,KeyCode.Keypad2,KeyCode.Keypad3};
     public actUtils(Transform pla,Transform bal,Animator ani,float spe,float col,float forc,float sho,float pas,Team tea){
         this.player = pla;
@@ -43,8 +45,11 @@ public class actUtils : MonoBehaviour
         return getDirection().magnitude<colliderRadius;
     }
 
+    private Vector3 direction;
     public Vector3 getDirection(){
-        return (ballTran.position - player.position);
+        direction = ballTran.position - player.position;
+        direction.y=0;
+        return direction;
     }
 
     public void PlayerRotate(Vector3 v){
@@ -54,7 +59,7 @@ public class actUtils : MonoBehaviour
     public void walk(Vector3 v){
         AnimaObj.SetBool("forward",true);
         PlayerRotate(v); 
-        player.Translate(v * speed,Space.World);
+        player.Translate(v * speed*Time.deltaTime,Space.World);
     }
 
     public void DribbleMove(){
@@ -84,26 +89,24 @@ public class actUtils : MonoBehaviour
 
     public void Substitution(Transform newPlayer){
         string temp = player.tag;
-        player.GetComponent<Play>().enabled = false;
         player.tag = newPlayer.tag;
-        newPlayer.GetComponent<Play>().enabled = true;
         newPlayer.tag = temp;
     }
 
     public void quickSubs(string tag){
-        Transform subPlayer = queryClosest(tag);
+        Transform subPlayer = queryClosest(tag,ballTran.position);
         Substitution(subPlayer.transform);
     }
 
-    public Transform queryClosest(string tag){
+    public Transform queryClosest(string tag,Vector3 v){
         GameObject[] players = GameObject.FindGameObjectsWithTag(tag);
         Transform closestPlayer = player;
         foreach(GameObject p in players){
-            Vector3 lens1 = ballTran.position - p.transform.position;
+            Vector3 lens1 = v - p.transform.position;
             if(closestPlayer == null){
                 closestPlayer = p.transform;
             }
-            Vector3 lens2 = ballTran.position - closestPlayer.position;
+            Vector3 lens2 = v - closestPlayer.position;
             if(Vector3.Magnitude(lens1) < Vector3.Magnitude(lens2)){
                 closestPlayer = p.transform;
             }
@@ -112,7 +115,7 @@ public class actUtils : MonoBehaviour
     }
 
     private Transform teammateTran;
-    public void Pass(){
+    public void Pass(bool isSubs){
         if(!isHoldingBall()){
             Debug.Log("没有持球！");
             return;
@@ -136,23 +139,148 @@ public class actUtils : MonoBehaviour
         }
         AnimaObj.Play("pass",0,0f);
         Vector3 direction = teammateTran.position-ballTran.position;
-        ballTran.GetComponent<Rigidbody>().AddForce(direction/Vector3.Magnitude(direction)*passForce);
-        Substitution(teammateTran);
+        ballTran.GetComponent<Rigidbody>().AddForce(direction.normalized*passForce);
+        if(isSubs){
+            Substitution(teammateTran);
+        }
         teammateTran = null;
     }
 
 
     public void run(){
-        Vector3 direction = getDirection();
-        direction.y = 0;
-        PlayerRotate(direction);
-        //player.Translate(Vector3.forward * speed);
+        AnimaObj.SetBool("run",true);
+        PlayerRotate(getDirection());
+        player.Translate(Vector3.forward * speed*Time.deltaTime);
+    }
+
+
+
+    //Ai 行为函数
+    private float goalDirSet;
+    private Vector3 getGoalPos(){
+        if(team==actUtils.Team.Blue){
+            return new Vector3(goalDirSet,0,0);
+        }else if(team==actUtils.Team.Red){
+            return new Vector3(-goalDirSet,0,0);
+        }else{
+            Debug.Log("getGoalDir() error");
+            return new Vector3(999,999,999);
+        }
+        
+    }
+    public void Dribbling(){
+        switch (team)
+        {
+            case Team.Blue:
+                if (Vector3.Dot(Vector3.left, player.forward) >= 0)
+                { 
+                    setState(AiControl.PlayerState.Pass);
+                    return;
+                }
+                break;
+            case Team.Red:
+                if (Vector3.Dot(Vector3.left, player.forward) < 0)
+                {
+                    setState(AiControl.PlayerState.Pass);
+                    return;
+                }
+                break;
+        }
+        // Debug.Log("Dribbling");
+        walk(Vector3.Normalize(getGoalPos()-player.position));
+    }
+    public void ReturnDefense()
+    {
+        if (team==Team.Blue)
+        {
+            walk(Vector3.left);
+            Debug.Log("Blue Ai正在回防");
+        }
+        else
+        {
+            walk(Vector3.right);
+            Debug.Log("Red Ai正在回防");
+        }
+ 
+    }
+
+    public void KickForward()
+    {
+        if ((team==Team.Blue&&getDirection().x<=0)&&(team==Team.Red&&getDirection().x>=0))
+        {
+            Shoot();
+        }else{
+            setState(AiControl.PlayerState.Pass);
+        }
+    }
+
+    public void Chase()
+    {   
+        // Debug.Log("chase");
+        run();
+    }
+
+    private bool flag = true;
+    public void resetFlag(){
+        flag = true;
+    }
+    public void RunPosition()
+    {
+        float a = 0;
+        if(flag){
+            a = getRandom();
+            flag = false;
+        }
+        // Debug.Log("RunPosition");
+        if(player == queryClosest(player.tag,-getGoalPos())){
+            if(System.Math.Abs(player.position.x)<System.Math.Abs(ballTran.position.x)){
+                ReturnDefense();
+            }
+            Debug.Log("close own goal");
+        }else if(player == queryClosest(player.tag,ballTran.position)){
+            Chase();
+        }else{
+            resetAnim();
+            if(a>0.5){
+                AnimaObj.SetBool("right",true);
+                player.Translate(player.right * speed*Time.deltaTime,Space.Self);
+            }else{
+                AnimaObj.SetBool("left",true);
+                player.Translate(-player.right * speed*Time.deltaTime,Space.Self);
+            }
+            
+        }
+        
+    }
+
+    public float getRandom(){
+        return Random.Range(0f, 1f);
+        
+    }
+
+    public void Steals()
+    {
+        //抢断：用来干扰对方进攻，
+        //如果球在范围内，并且如果当前面向地方大门，则踢一脚
+                     
+    }
+
+    public void WaitPass()
+    {
+        // Debug.Log("WaitPass");
+        //指令 原地等待
+        //注视球飞过来 (后期再解决旋转问题，目前先不写)
+        
+    }
+
+    public void setState(AiControl.PlayerState state){
+        player.GetComponent<Play>().playerState = state;
     }
 
 
 
 
-
+    //其它脚本从此脚本获取变量或属性
     public Team GetTeam(){
         return team;
     }
@@ -161,12 +289,18 @@ public class actUtils : MonoBehaviour
         return AnimaObj;
     }
 
-
     public KeyCode[] GetKeyCodes(){
         if(team == Team.Blue){
             return BlueControl;
         }
         return RedControl;
+    }
+
+    private string[] animators = {"forward","backward","left","right","run"};
+    void resetAnim(){
+        foreach(string str in animators){
+            AnimaObj.SetBool(str,false);
+        }
     }
 
 }

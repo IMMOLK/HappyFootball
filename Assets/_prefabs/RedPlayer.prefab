@@ -1873,7 +1873,6 @@ GameObject:
   - component: {fileID: 1260212429804326694}
   - component: {fileID: 4618363553388316702}
   - component: {fileID: 4618363553388316703}
-  - component: {fileID: 4618363553388316696}
   - component: {fileID: 4618363553388316697}
   m_Layer: 0
   m_Name: RedPlayer
@@ -1954,7 +1953,7 @@ CapsuleCollider:
   m_Height: 2
   m_Direction: 1
   m_Center: {x: 0, y: 1, z: 0}
---- !u!114 &4618363553388316696
+--- !u!114 &4618363553388316697
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -1963,30 +1962,16 @@ MonoBehaviour:
   m_GameObject: {fileID: 5536842586402672614}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 35e4c7f1ab235454a89e118eb2b4d606, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  speed: {x: 0, y: 0, z: 0}
-  direction: {x: 0, y: 0, z: 0}
---- !u!114 &4618363553388316697
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 5536842586402672614}
-  m_Enabled: 0
-  m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 41b89bd2efaee1e479455d3fcba93bb4, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  speed: 0.025
-  playerTs: {fileID: 4618363553270208623}
+  speed: 3
   colliderRadius: 0.6
   force: 1
-  shootPower: 15
-  passForce: 30
-  team: 1
+  shootPower: 7
+  passForce: 5
+  playerState: 20
+  team: 2
 --- !u!1 &5591930201428349938
 GameObject:
   m_ObjectHideFlags: 0
