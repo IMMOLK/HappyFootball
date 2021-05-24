@@ -32,7 +32,7 @@ public class Play : MonoBehaviour
     }
 
     // Update is called once per frame
-    void Update()
+    void FixedUpdate()
     {
         if(tag=="BluePlayer"||tag=="RedPlayer"){
             pc.Play();
@@ -47,4 +47,5 @@ public class Play : MonoBehaviour
     void shootForce(){
         utils.shootForce();
     }
+
 }

@@ -14,20 +14,17 @@ public class actUtils : MonoBehaviour
     private float shootPower;
     private float passForce;
     private Team team;
-    private float goalDir = 17.0f;
+    public float goalDir = 17.0f;
     public enum Team{
         None = 0,
         Blue = 1,
         Red = 2
     }
 
-    void Start() {
-        
-    }
     public actUtils(){}
 
     public actUtils(Transform bal){ballTran = bal;}
-    private KeyCode[] BlueControl = {KeyCode.D,KeyCode.A,KeyCode.W,KeyCode.S,KeyCode.LeftControl,KeyCode.J,KeyCode.K,KeyCode.Space};
+    private KeyCode[] BlueControl = {KeyCode.D,KeyCode.A,KeyCode.W,KeyCode.S,KeyCode.LeftShift,KeyCode.J,KeyCode.K,KeyCode.Space};
     private KeyCode[] RedControl = {KeyCode.RightArrow,KeyCode.LeftArrow,KeyCode.UpArrow,KeyCode.DownArrow,KeyCode.Keypad0,KeyCode.Keypad1,KeyCode.Keypad2,KeyCode.Keypad3};
     public actUtils(Transform pla,Transform bal,Animator ani,float spe,float col,float forc,float sho,float pas,Team tea){
         this.player = pla;
@@ -66,7 +63,7 @@ public class actUtils : MonoBehaviour
         if(isHoldingBall()){
             AnimaObj.SetBool("dribble",true);
             Debug.Log("isHoldingBall");
-            ballTran.GetComponent<Rigidbody>().AddForce(getDirection()/Vector3.Magnitude(getDirection())*force);
+            ballTran.GetComponent<Rigidbody>().AddForce(Vector3.Normalize(getDirection())*force);
         }else{
             AnimaObj.SetBool("dribble",false);
         }
@@ -101,6 +98,8 @@ public class actUtils : MonoBehaviour
     public Transform queryClosest(string tag,Vector3 v){
         GameObject[] players = GameObject.FindGameObjectsWithTag(tag);
         Transform closestPlayer = player;
+        if(player==null || v == player.position)
+            closestPlayer = null;
         foreach(GameObject p in players){
             Vector3 lens1 = v - p.transform.position;
             if(closestPlayer == null){
@@ -114,37 +113,37 @@ public class actUtils : MonoBehaviour
         return closestPlayer;
     }
 
-    private Transform teammateTran;
+    string searchTag;
     public void Pass(bool isSubs){
         if(!isHoldingBall()){
-            Debug.Log("没有持球！");
             return;
         }
-        Collider[] allColls = Physics.OverlapSphere(player.position,10.0f);
-        foreach(Collider item in allColls){
-            if (team==Team.Blue&& item.tag == "Blue")
-            {
-                teammateTran = item.transform;
-                break;      //这一步表示，不论有多少个队友，只查找集合的第一个，并返回
-            }
-            if (team==Team.Red&&item.tag=="Red")
-            {
-                teammateTran = item.transform;
-                break;
-            }
+        switch(team){
+            case Team.Blue: searchTag = "Blue";
+                            break;
+            case Team.Red:  searchTag = "Red";
+                            break;
         }
-        if(teammateTran == null){
-                Debug.Log("未找到队友");
-                return;
+        Transform teammateTran;
+        if(player.tag == "BluePlayer"){
+            teammateTran = queryClosest(searchTag,player.position);
+        }else{
+            teammateTran = queryClosest(searchTag,getGoalPos());
+        }
+        if(teammateTran == player){
+            Shoot();
+            return;
         }
         AnimaObj.Play("pass",0,0f);
         Vector3 direction = teammateTran.position-ballTran.position;
-        ballTran.GetComponent<Rigidbody>().AddForce(direction.normalized*passForce);
+        direction.y = 0;
+        ballTran.GetComponent<Rigidbody>().AddForce(direction*passForce);
         if(isSubs){
             Substitution(teammateTran);
         }
         teammateTran = null;
     }
+
 
 
     public void run(){
@@ -156,36 +155,28 @@ public class actUtils : MonoBehaviour
 
 
     //Ai 行为函数
-    private float goalDirSet;
+    private float gd;
     private Vector3 getGoalPos(){
+        gd = goalDir;
+        if(GameControl.isChangeGoal)
+            gd = -gd;
         if(team==actUtils.Team.Blue){
-            return new Vector3(goalDirSet,0,0);
+            return new Vector3(gd,0,0);
         }else if(team==actUtils.Team.Red){
-            return new Vector3(-goalDirSet,0,0);
+            return new Vector3(-gd,0,0);
         }else{
             Debug.Log("getGoalDir() error");
             return new Vector3(999,999,999);
         }
-        
     }
+
     public void Dribbling(){
-        switch (team)
-        {
-            case Team.Blue:
-                if (Vector3.Dot(Vector3.left, player.forward) >= 0)
-                { 
-                    setState(AiControl.PlayerState.Pass);
-                    return;
-                }
-                break;
-            case Team.Red:
-                if (Vector3.Dot(Vector3.left, player.forward) < 0)
-                {
-                    setState(AiControl.PlayerState.Pass);
-                    return;
-                }
-                break;
-        }
+        // Debug.Log("Dribble"+Vector3.Dot(getGoalPos(), player.forward));
+        if (Vector3.Dot(getGoalPos(), player.forward) < 0)
+            {
+                setState(AiControl.PlayerState.Pass);
+                return;
+            }
         // Debug.Log("Dribbling");
         walk(Vector3.Normalize(getGoalPos()-player.position));
     }
@@ -194,19 +185,18 @@ public class actUtils : MonoBehaviour
         if (team==Team.Blue)
         {
             walk(Vector3.left);
-            Debug.Log("Blue Ai正在回防");
         }
         else
         {
             walk(Vector3.right);
-            Debug.Log("Red Ai正在回防");
         }
  
     }
 
     public void KickForward()
     {
-        if ((team==Team.Blue&&getDirection().x<=0)&&(team==Team.Red&&getDirection().x>=0))
+        // Debug.Log("Shoot"+Vector3.Dot(getGoalPos(), player.forward));
+        if (Vector3.Dot(getGoalPos(), player.forward) > 0)
         {
             Shoot();
         }else{
@@ -236,7 +226,6 @@ public class actUtils : MonoBehaviour
             if(System.Math.Abs(player.position.x)<System.Math.Abs(ballTran.position.x)){
                 ReturnDefense();
             }
-            Debug.Log("close own goal");
         }else if(player == queryClosest(player.tag,ballTran.position)){
             Chase();
         }else{
@@ -296,8 +285,10 @@ public class actUtils : MonoBehaviour
         return RedControl;
     }
 
+
+
     private string[] animators = {"forward","backward","left","right","run"};
-    void resetAnim(){
+    public void resetAnim(){
         foreach(string str in animators){
             AnimaObj.SetBool(str,false);
         }

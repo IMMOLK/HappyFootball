@@ -59,6 +59,7 @@ public class AiControl : MonoBehaviour
         }
     }
 
+
     public void ChangeState()
     {
         if(coolingTimer>0){
@@ -67,7 +68,7 @@ public class AiControl : MonoBehaviour
         }
         if(utils.isHoldingBall()){
             float a = utils.getRandom();
-            if(a>=0.6){
+            if(a>=0.8){
                 utils.setState(PlayerState.Dribbling);
             }
             else if (a>=0.3)
@@ -80,20 +81,19 @@ public class AiControl : MonoBehaviour
             }
         }else{
             float b = utils.getRandom();
-            if (b>=0.7)
+            if (b>=0.6)
             {
                 utils.setState(PlayerState.Chase);
             }
-            else if(b>0.3)
+            else
             {
                 utils.setState(PlayerState.RunPosition);
-            }else{
-                utils.setState(PlayerState.WaitInPosition);
             }
         }
         coolingTimer = cooling;
         utils.resetFlag();
     }
+
     
 
 }

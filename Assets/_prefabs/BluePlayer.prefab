@@ -292,8 +292,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   speed: 3
   colliderRadius: 0.6
-  force: 1
-  shootPower: 7
+  force: 1.5
+  shootPower: 10
   passForce: 5
   playerState: 20
   team: 1

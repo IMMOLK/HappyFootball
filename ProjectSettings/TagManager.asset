@@ -13,6 +13,11 @@ TagManager:
   - RedPlayer
   - BlueMark
   - RedMark
+  - Record
+  - RecordRow
+  - Setting
+  - mask
+  - Control
   layers:
   - Default
   - TransparentFX

@@ -7,7 +7,6 @@ public class PlayControl : MonoBehaviour
    private KeyCode[] control;
    private actUtils utils;
    private Animator AnimaObj;
-
    public PlayControl(actUtils utils){
        this.utils = utils;
        AnimaObj = utils.GetAnimator();
@@ -40,7 +39,7 @@ public class PlayControl : MonoBehaviour
         }   
 
         if(Input.GetKeyUp(control[0])||Input.GetKeyUp(control[1])||Input.GetKeyUp(control[2])||Input.GetKeyUp(control[3])){
-            AnimaObj.SetBool("forward",false);
+            utils.resetAnim();
         }
         
         if(Input.GetKeyUp(control[4])){
@@ -65,6 +64,7 @@ public class PlayControl : MonoBehaviour
         {
             utils.Shoot();
         }
-    }
 
+
+    }
 }
